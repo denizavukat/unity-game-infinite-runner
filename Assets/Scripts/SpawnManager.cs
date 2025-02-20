@@ -21,6 +21,8 @@ public class SpawnManager : MonoBehaviour
     private int[] lines = { -1, 0, 1 };
     private List<GameObject> obstacles = new List<GameObject>();
     private List<GameObject> points = new List<GameObject>();
+    public List<Vector3> prevPositions = new List<Vector3>();
+
     private float positionY;
 
     //private PlayerController playerControllerScript;
@@ -84,8 +86,15 @@ public class SpawnManager : MonoBehaviour
             {
                 int randomLine = lines[Random.Range(0, lines.Length)];
                 Vector3 spawnPos = new Vector3(randomLine * lineWidth, positionY, (player.position.z + spawnDistance));
+                //Debug.Log(spawnPos);
+                /*
+                if (prevPositions.Contains(spawnPos))
+                {
+                    return;
+                } */
                 obstacle.SetActive(true);
                 obstacle.transform.position = spawnPos;
+                //prevPositions.Add(spawnPos);
                 
                 break;
             }
@@ -101,7 +110,14 @@ public class SpawnManager : MonoBehaviour
         int randomCount = Random.Range(4, 8);
         Vector3 spawnPos = new Vector3(randomLine * lineWidth, positionY, (player.position.z + spawnDistance));
         int k = 0;
-        foreach (GameObject point in points)
+        /*
+         
+        if (prevPositions.Contains(spawnPos) )
+        {
+            return;
+        }
+        */
+                foreach (GameObject point in points)
         {
 
             if (!point.activeInHierarchy && k < randomCount )
@@ -109,6 +125,7 @@ public class SpawnManager : MonoBehaviour
                 spawnPos.z += 15;
                 point.transform.position = spawnPos;
                 point.SetActive(true);
+                //prevPositions.Add(spawnPos);
                 k++;
             }
         }

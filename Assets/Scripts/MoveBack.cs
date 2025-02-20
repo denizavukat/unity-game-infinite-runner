@@ -4,14 +4,16 @@ using UnityEngine;
 
 public class MoveBack : MonoBehaviour
 {
-    public float speed = 30.0f;
+    private float speed = 40.0f;
     private float bound = -500.0f;
 
     private GameManager gameManager;
+    private SpawnManager spawnManager;
     // Start is called before the first frame update
     void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
 
     }
 
@@ -29,6 +31,8 @@ public class MoveBack : MonoBehaviour
             //Destroy(gameObject);
             //Debug.Log($"Deactivating {gameObject.name} at {transform.position.z}");
             gameObject.SetActive(false);
+            //spawnManager.prevPositions.Remove(new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z +200));
+            //Debug.Log(spawnManager.prevPositions.Count);
         }
     }
 }

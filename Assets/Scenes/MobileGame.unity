@@ -140,6 +140,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bdabe02d6211435998f34d8122ec396, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxLineCount: 3
+  startingLineXPosition: -50
   moveSpeed: 100
   jumpForce: 200
   lineChangeSpeed: 10000
@@ -410,7 +412,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &336782764
 RectTransform:
   m_ObjectHideFlags: 0
@@ -563,6 +565,7 @@ MonoBehaviour:
   spawnDistance: 100
   spawnInterval: 2
   spawnIntervalPoint: 15
+  prevPositions: []
 --- !u!4 &662945529
 Transform:
   m_ObjectHideFlags: 0
@@ -815,13 +818,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bdabe02d6211435998f34d8122ec396, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 50
-  jumpForce: 80
+  maxLineCount: 3
+  startingLineXPosition: -50
+  moveSpeed: 500
+  jumpForce: 50
   lineChangeSpeed: 100
   lineWidth: 50
-  jumpheight: 30
+  jumpheight: 40
   maxJumpCount: 2
-  gravity: 100
+  gravity: 20
   isOnGround: 0
 --- !u!54 &688565652
 Rigidbody:
@@ -915,7 +920,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1032656444
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1358,7 +1363,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5890629735874671488, guid: 6fa3ecdc000454169bd7fc745dd5e999, type: 3}
       propertyPath: speed
-      value: 80
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 6403632546340996867, guid: 6fa3ecdc000454169bd7fc745dd5e999, type: 3}
       propertyPath: m_Name

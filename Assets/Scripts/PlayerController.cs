@@ -10,6 +10,8 @@ public class PlayerController : MonoBehaviour
 {
     private Rigidbody playerRb;
 
+    public int maxLineCount = 3;
+    public float startingLineXPosition = -50;
     public float moveSpeed = 50f;
     public float jumpForce = 80f;
     public float lineChangeSpeed = 50f;
@@ -19,65 +21,80 @@ public class PlayerController : MonoBehaviour
     private int currentLine = 0; 
 
     private int jumpCount = 0;
-    public int maxJumpCount = 2;
+    public int maxJumpCount = 1;
 
     public float gravity = 15f;
 
     public bool isOnGround;
+    public bool isJumping ;
     private bool falling = false;
 
-
+    Vector3 initialPlayerPositions;
     private GameManager gameManager;
+    private SpawnManager spawnManager;
 
-    // Start is called before the first frame update
     void Start()
     {
         playerRb = GetComponent<Rigidbody>();
 
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
 
-        /*
+        
         SphereCollider collider = GameObject.Find("SpherePlayer").GetComponent<SphereCollider>();
         BoxCollider groundcollider = GameObject.Find("Road (1)").GetComponent<BoxCollider>();
        
         Vector3 newPosition = groundcollider.transform.position;
 
-        collider.transform.position = new Vector3(collider.transform.position.x,newPosition.y + 9,collider.transform.position.z);*/
-
+        collider.transform.position = new Vector3(collider.transform.position.x,newPosition.y + 9,collider.transform.position.z);
+        initialPlayerPositions = transform.position;
     }
 
-    // Update is called once per frame
     void Update()
     {
 
-        //transform.Rotate(Time.deltaTime * 30 * Vector3.left);
+        MoveSideways();
+        if (isJumping)
+        {
+            Jump2();
+        }
+        else if(!isOnGround)
+        {
+            Fall();
+        }
+       
+           
+        
+
 
         if (Input.GetKeyDown(KeyCode.Space) && jumpCount < maxJumpCount)
         {
-                jumpCount++;
-                Debug.Log(jumpCount);
-                isOnGround = false;
-                StartCoroutine(Jump());
+            jumpCount++;
+            isJumping = true;
+            //isOnGround = false;
+            Debug.Log(jumpCount);
+
 
         }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow) && currentLine > -1)
+        else if (Input.GetKeyDown(KeyCode.LeftArrow) && currentLine > 0)
         {
-                StartCoroutine(GoLeft());
-;                
+            
+            currentLine--;
         }
-        else if (Input.GetKeyDown(KeyCode.RightArrow) && currentLine < 1)
+        else if (Input.GetKeyDown(KeyCode.RightArrow) && currentLine < maxLineCount-1)
         {
-                StartCoroutine(GoRight());
-                
+            
+            currentLine++;
+
         }
 
-        
-        else if (Input.GetKeyDown(KeyCode.DownArrow) && transform.position.y >9)
+
+        else if (Input.GetKeyDown(KeyCode.DownArrow) && transform.position.y > 9)
         {
             StartCoroutine(GoQuickDown());
 
         }
-        
+
 
 
 
@@ -85,79 +102,68 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    IEnumerator Jump()
+    private void MoveSideways()
     {
-        float topIndex = Mathf.Max(transform.position.y + jumpheight, 50);
-        while (transform.position.y < topIndex)
+     
+        Vector3 desiredPosition = new Vector3(startingLineXPosition + currentLine * lineWidth
+                    , transform.position.y, transform.position.z);
+
+        Vector3 currentPosition = transform.position;
+        Vector3 differenceVector = desiredPosition - currentPosition;
+
+
+        if (differenceVector.magnitude < 0.01)
         {
-            transform.Translate(Vector3.up * jumpForce * Time.deltaTime);
-            yield return new WaitForEndOfFrame();
+            transform.position = desiredPosition;
+            return;
         }
-        falling = true;
-        while (transform.position.y > 8)
-        {
-            transform.Translate(Vector3.down * gravity * Time.deltaTime);
-            yield return new WaitForEndOfFrame();
-        }
-        falling = false;
+
+
+        Vector3 directionVector = differenceVector.normalized;
+        transform.position += directionVector * moveSpeed * Time.deltaTime;
 
     }
 
-    IEnumerator GoLeft()
+    private void Jump2()
     {
-        float leftIndex;
-        if (currentLine == 0)
-        {
-            leftIndex = -50;
-            while (transform.position.x > leftIndex)
-            {
-                transform.Translate(Vector3.left * lineChangeSpeed * Time.deltaTime);
-                yield return new WaitForEndOfFrame();
-            }
-            currentLine = -1;
-        }
-        else
-        {
-            leftIndex = 0;
-            while (transform.position.x > leftIndex)
-            {
-                transform.Translate(Vector3.left * lineChangeSpeed * Time.deltaTime);
-                yield return new WaitForEndOfFrame();
-            }
-            currentLine = 0;
-        }
-
         
+        Vector3 desiredPosition = new Vector3(transform.position.x, initialPlayerPositions.y + jumpheight, transform.position.z);
+        Vector3 currentPosition = transform.position;
+        Vector3 differenceVector = desiredPosition - currentPosition;
+        if (differenceVector.magnitude < 0.01)
+        {
+            transform.position = desiredPosition;
+            isJumping = false;
+            return;
+        }
 
+            Vector3 directionVector = differenceVector.normalized;
+            transform.position += directionVector * jumpForce * Time.deltaTime;
+        
     }
 
-    IEnumerator GoRight()
+    private void Fall()
     {
-        float rightIndex;
-        if (currentLine == 0)
+        Vector3 desiredPosition = new Vector3(transform.position.x, initialPlayerPositions.y, transform.position.z);
+        Vector3 currentPosition = transform.position;
+        Vector3 differenceVector = desiredPosition - currentPosition;
+        Debug.Log(differenceVector.magnitude);
+        if (differenceVector.magnitude < 0.001 && isOnGround)
         {
-            rightIndex = 50;
-            while (transform.position.x < rightIndex)
-            {
-                transform.Translate(Vector3.right * lineChangeSpeed * Time.deltaTime);
-                yield return new WaitForEndOfFrame();
-            }
-            currentLine = 1;
+            transform.position = desiredPosition;
+            Debug.Log("aşağı indi");
+            
+            jumpCount = 0;
+            return;
         }
-        else
-        {
-            rightIndex = 0;
-            while (transform.position.x < rightIndex)
-            {
-                transform.Translate(Vector3.right * lineChangeSpeed * Time.deltaTime);
-                yield return new WaitForEndOfFrame();
-            }
-            currentLine = 0;
-        }
-
-        
+        Vector3 directionVector = differenceVector.normalized;
+        transform.position += directionVector * 300 * Time.deltaTime;
 
     }
+
+    
+
+    
 
     IEnumerator GoQuickDown()
     {
@@ -181,7 +187,7 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Ground"))
         {
             isOnGround = true;
-            //Debug.Log("Is on ground");
+            isJumping = false;
             jumpCount = 0;
         }
        
@@ -196,11 +202,24 @@ public class PlayerController : MonoBehaviour
         {
             gameManager.UpdateScore();
             other.gameObject.SetActive(false);
+            //spawnManager.prevPositions.Remove(other.transform.position);
+            //spawnManager.prevPositions.Remove(new Vector3(other.transform.position.x, other.transform.position.y, other.transform.position.z + 200));
+
+            //Debug.Log(spawnManager.prevPositions.Count);
             //Destroy(other.gameObject);
 
         }
 
 
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Ground"))
+        {
+            isOnGround = false;
+            //Debug.Log("Is on ground");
+        }
     }
 
 
