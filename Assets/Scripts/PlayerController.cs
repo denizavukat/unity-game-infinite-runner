@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 
 
@@ -8,20 +9,20 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private Rigidbody playerRb;
+ 
 
     public int maxLineCount = 3;
     public float startingLineXPosition = -50;
-    public float moveSpeed = 50f;
+    public float lineChangeSpeed = 200f;
     public float jumpForce = 80f;
-    public float lineChangeSpeed = 50f;
     public float lineWidth = 50f;
-    public float jumpheight = 20.0f;
+    public float jumpheight = 40.0f;
+    public float maxHeight = 60.0f;
 
     private int currentLine = 0; 
 
     private int jumpCount = 0;
-    public int maxJumpCount = 1;
+    public int maxJumpCount = 2;
 
     public float gravity = 15f;
 
@@ -30,12 +31,13 @@ public class PlayerController : MonoBehaviour
     private bool falling = false;
 
     Vector3 initialPlayerPositions;
+
     private GameManager gameManager;
     private SpawnManager spawnManager;
 
     void Start()
     {
-        playerRb = GetComponent<Rigidbody>();
+        
 
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
@@ -54,26 +56,25 @@ public class PlayerController : MonoBehaviour
     {
 
         MoveSideways();
+
+        if (!isOnGround)
+        {
+            Fall();
+        }
+
         if (isJumping)
         {
             Jump2();
         }
-        else if(!isOnGround)
-        {
-            Fall();
-        }
-       
-           
-        
+
+
+
 
 
         if (Input.GetKeyDown(KeyCode.Space) && jumpCount < maxJumpCount)
         {
             jumpCount++;
             isJumping = true;
-            //isOnGround = false;
-            Debug.Log(jumpCount);
-
 
         }
         else if (Input.GetKeyDown(KeyCode.LeftArrow) && currentLine > 0)
@@ -120,25 +121,31 @@ public class PlayerController : MonoBehaviour
 
 
         Vector3 directionVector = differenceVector.normalized;
-        transform.position += directionVector * moveSpeed * Time.deltaTime;
+        transform.position += directionVector * lineChangeSpeed * Time.deltaTime;
 
     }
 
     private void Jump2()
     {
-        
-        Vector3 desiredPosition = new Vector3(transform.position.x, initialPlayerPositions.y + jumpheight, transform.position.z);
-        Vector3 currentPosition = transform.position;
-        Vector3 differenceVector = desiredPosition - currentPosition;
-        if (differenceVector.magnitude < 0.01)
+        if (jumpCount > 0 && jumpCount <= maxJumpCount)
         {
-            transform.position = desiredPosition;
-            isJumping = false;
-            return;
-        }
+            Vector3 desiredPosition = new Vector3(transform.position.x, Math.Min(initialPlayerPositions.y + jumpheight * (jumpCount), maxHeight), transform.position.z);
+            Vector3 currentPosition = transform.position;
+            Vector3 differenceVector = desiredPosition - currentPosition;
+            if (differenceVector.magnitude < 0.01)
+            {
+                transform.position = desiredPosition;
+                
+                    isJumping = false;
+                
+                
+                return;
+            }
+
 
             Vector3 directionVector = differenceVector.normalized;
             transform.position += directionVector * jumpForce * Time.deltaTime;
+        }
         
     }
 
@@ -147,17 +154,15 @@ public class PlayerController : MonoBehaviour
         Vector3 desiredPosition = new Vector3(transform.position.x, initialPlayerPositions.y, transform.position.z);
         Vector3 currentPosition = transform.position;
         Vector3 differenceVector = desiredPosition - currentPosition;
-        Debug.Log(differenceVector.magnitude);
-        if (differenceVector.magnitude < 0.001 && isOnGround)
+        if (differenceVector.magnitude < 0.01 && isOnGround)
         {
-            transform.position = desiredPosition;
-            Debug.Log("aşağı indi");
-            
+            transform.position = desiredPosition;            
             jumpCount = 0;
+
             return;
         }
         Vector3 directionVector = differenceVector.normalized;
-        transform.position += directionVector * 300 * Time.deltaTime;
+        transform.position += directionVector * gravity * Time.deltaTime;
 
     }
 
@@ -192,21 +197,36 @@ public class PlayerController : MonoBehaviour
         }
        
         if (other.CompareTag("Obstacle"))
+
         {
-            //gameManager.isGameActive = false;
-            gameManager.GameOver();
-            Debug.Log("Game OVER");
+            Vector3 boundries = other.bounds.center;
+
+            Debug.Log(boundries);
+            Vector3 directionVector = (other.transform.position - transform.position).normalized;
+            
+            if(directionVector.y > 0.7 || directionVector.x > 0.7 || directionVector.x < -0.7 || directionVector.z > 0.7)
+            {
+                //gameManager.GameOver();
+                Debug.Log("Game OVER");
+                return;
+            }
+
+            
             
         }
         if (other.CompareTag("Point") && gameManager.isGameActive)
         {
             gameManager.UpdateScore();
+            
+            int lineIndex = Mathf.RoundToInt((transform.position.x - startingLineXPosition) / lineWidth);
+            if (spawnManager.positions.ContainsKey(lineIndex))
+            {
+                spawnManager.positions[lineIndex]--;
+                Debug.Log($"Line {lineIndex} üzerinde {spawnManager.positions[lineIndex]} obje kaldı");
+       
+            }
             other.gameObject.SetActive(false);
-            //spawnManager.prevPositions.Remove(other.transform.position);
-            //spawnManager.prevPositions.Remove(new Vector3(other.transform.position.x, other.transform.position.y, other.transform.position.z + 200));
 
-            //Debug.Log(spawnManager.prevPositions.Count);
-            //Destroy(other.gameObject);
 
         }
 
@@ -218,7 +238,7 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Ground"))
         {
             isOnGround = false;
-            //Debug.Log("Is on ground");
+           
         }
     }
 

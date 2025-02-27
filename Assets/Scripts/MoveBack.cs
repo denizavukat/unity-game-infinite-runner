@@ -9,11 +9,13 @@ public class MoveBack : MonoBehaviour
 
     private GameManager gameManager;
     private SpawnManager spawnManager;
+    private PlayerController playerController;
     // Start is called before the first frame update
     void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
+        playerController = GameObject.Find("SpherePlayer").GetComponent<PlayerController>();
 
     }
 
@@ -27,12 +29,17 @@ public class MoveBack : MonoBehaviour
         }
         if (transform.position.z < bound && (gameObject.CompareTag("Obstacle") || gameObject.CompareTag("Point")))
         {
-            //Debug.Log("Deleted obstacle");
-            //Destroy(gameObject);
-            //Debug.Log($"Deactivating {gameObject.name} at {transform.position.z}");
+            
+            
+            int lineIndex = Mathf.RoundToInt((transform.position.x - playerController.startingLineXPosition) / playerController.lineWidth);
+            if (spawnManager.positions.ContainsKey(lineIndex))
+            {
+                spawnManager.positions[lineIndex]--;
+                Debug.Log($"Line {lineIndex} üzerinde {spawnManager.positions[lineIndex]} obje kaldı");
+                //Debug.Log(spawnManager.positions[lineIndex]);
+                //= Mathf.Max(0, spawnManager.positions[lineIndex] - 1);
+            }
             gameObject.SetActive(false);
-            //spawnManager.prevPositions.Remove(new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z +200));
-            //Debug.Log(spawnManager.prevPositions.Count);
         }
     }
 }

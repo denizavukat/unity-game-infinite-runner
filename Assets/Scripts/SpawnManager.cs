@@ -13,33 +13,37 @@ public class SpawnManager : MonoBehaviour
     public float spawnDistance = 100f;
 
     public float spawnInterval = 3f;
-    public float spawnIntervalPoint = 15f;
+    public float spawnIntervalPoint = 5f;
 
     private float nextSpawnTime = 0f;
     private float nextSpawnTimePoint = 0f;
 
-    private int[] lines = { -1, 0, 1 };
+
     private List<GameObject> obstacles = new List<GameObject>();
     private List<GameObject> points = new List<GameObject>();
-    public List<Vector3> prevPositions = new List<Vector3>();
+    public Dictionary<int, int> positions = new Dictionary<int, int>();
 
     private float positionY;
 
     //private PlayerController playerControllerScript;
     private GameManager gameManager;
+    private PlayerController playerController;
 
     void Start()
     {
         positionY = player.position.y;
-        //Debug.Log(player.position.z + spawnDistance);
-        //playerControllerScript = GameObject.Find("SpherePlayer").GetComponent<PlayerController>();
+       
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        playerController = GameObject.Find("SpherePlayer").GetComponent<PlayerController>();
+
+        for (int i = 0; i < playerController.maxLineCount; i++)
+        {
+            positions[i] = 0;
+        }
 
         for (int i = 0; i < 10; i++)
         {
-            //int randomLine = lines[Random.Range(0, lines.Length)];
             GameObject randomObstacle = Instantiate(obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)]);
-            //Vector3 spawnPos = new Vector3(randomLine * lineWidth, positionY, (player.position.z + spawnDistance));
             randomObstacle.SetActive(false);
             obstacles.Add(randomObstacle);
         }
@@ -47,7 +51,6 @@ public class SpawnManager : MonoBehaviour
         for (int i = 0; i < 10; i++)
         {
             GameObject point = Instantiate(pointObject);
-            //Vector3 spawnPos = new Vector3(randomLine * lineWidth, positionY, (player.position.z + spawnDistance));
             point.SetActive(false);
             points.Add(point);
         }
@@ -75,27 +78,28 @@ public class SpawnManager : MonoBehaviour
 
     void SpawnObstacle()
     {
-        
-        //GameObject randomObstacle = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
-        
+                
         
         
         foreach (GameObject obstacle in obstacles)
         {
             if (!obstacle.activeInHierarchy)
             {
-                int randomLine = lines[Random.Range(0, lines.Length)];
-                Vector3 spawnPos = new Vector3(randomLine * lineWidth, positionY, (player.position.z + spawnDistance));
-                //Debug.Log(spawnPos);
-                /*
-                if (prevPositions.Contains(spawnPos))
-                {
-                    return;
-                } */
+                float additionalDistance = 0;
+                int randomLine = Random.Range(0, playerController.maxLineCount);
+
+                
+                additionalDistance += (15 * positions[randomLine]);
+                 
+        
+                
+                Vector3 spawnPos = new Vector3(playerController.startingLineXPosition + randomLine * playerController.lineWidth, positionY, (player.position.z + spawnDistance+ additionalDistance));
+                positions[randomLine]++;
+
                 obstacle.SetActive(true);
                 obstacle.transform.position = spawnPos;
-                //prevPositions.Add(spawnPos);
-                
+                Debug.Log($"Line {randomLine} üzerinde Obstacle oluşturuldu");
+
                 break;
             }
         }
@@ -106,26 +110,30 @@ public class SpawnManager : MonoBehaviour
 
     void SpawnPoint()
     {
-        int randomLine = lines[Random.Range(0, lines.Length)];
+        Debug.Log("Point spawnlandı.");
+        int randomLine = Random.Range(0, playerController.maxLineCount);
         int randomCount = Random.Range(4, 8);
-        Vector3 spawnPos = new Vector3(randomLine * lineWidth, positionY, (player.position.z + spawnDistance));
+        float additionalDistance = 0;
+        if (positions.ContainsKey(randomLine)) additionalDistance = (15 * positions[randomLine]);
+        Vector3 spawnPos = new Vector3(playerController.startingLineXPosition + randomLine * playerController.lineWidth,
+                                       positionY,
+                                       (player.position.z + spawnDistance + additionalDistance));
         int k = 0;
-        /*
-         
-        if (prevPositions.Contains(spawnPos) )
+        //positions[randomLine] += randomCount;
+
+
+        Debug.Log($"Line {randomLine} üzerinde {randomCount} Point oluşturuldu");
+
+        foreach (GameObject point in points)
         {
-            return;
-        }
-        */
-                foreach (GameObject point in points)
-        {
+            
 
             if (!point.activeInHierarchy && k < randomCount )
             {
                 spawnPos.z += 15;
                 point.transform.position = spawnPos;
                 point.SetActive(true);
-                //prevPositions.Add(spawnPos);
+                positions[randomLine]++;
                 k++;
             }
         }
