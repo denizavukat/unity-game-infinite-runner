@@ -206,7 +206,7 @@ public class PlayerController : MonoBehaviour
             
             if(directionVector.y > 0.7 || directionVector.x > 0.7 || directionVector.x < -0.7 || directionVector.z > 0.7)
             {
-                //gameManager.GameOver();
+                gameManager.GameOver();
                 Debug.Log("Game OVER");
                 return;
             }
@@ -219,12 +219,7 @@ public class PlayerController : MonoBehaviour
             gameManager.UpdateScore();
             
             int lineIndex = Mathf.RoundToInt((transform.position.x - startingLineXPosition) / lineWidth);
-            if (spawnManager.positions.ContainsKey(lineIndex))
-            {
-                spawnManager.positions[lineIndex]--;
-                Debug.Log($"Line {lineIndex} üzerinde {spawnManager.positions[lineIndex]} obje kaldı");
-       
-            }
+     
             other.gameObject.SetActive(false);
 
 
